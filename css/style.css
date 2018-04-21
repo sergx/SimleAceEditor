@@ -1,0 +1,14 @@
+#editor {
+  height: 100vh;
+}
+
+.columns.main-colums{
+  margin-bottom: 0;
+}
+.column.editor-column{
+  padding-bottom: 0;
+}
+.file-list{
+  height: 100vh;
+  overflow: auto;
+}
