@@ -1,8 +1,8 @@
-<?php include 'codeEditorACE.class.php'; ?>
+<?php include 'simpleAceEditor.class.php'; ?>
 <!DOCTYPE html>
 <html>
 <head>
-  <title>codeEditorACE</title>
+  <title>SimpleAceEditor</title>
   
   <!-- development version, includes helpful console warnings -->
   <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -125,7 +125,7 @@
           ,data : thisX.dirname + thisX.basename + "/"
         }
         
-        axios.post('codeEditorACE.class.php', dataToSend )
+        axios.post('simpleAceEditor.class.php', dataToSend )
           .then(function (response) {
             Vue.set(thisX, 'children', response.data);
             //console.log('ok:');
