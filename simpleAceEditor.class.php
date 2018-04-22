@@ -9,6 +9,15 @@
     }
   }
   
+  public function sortFile($array){
+    function mySort($a, $b){
+      return ($a < $b) ? -1 : 1;
+    }
+    
+    
+    return $result;
+  }
+  
   public function fileList($folder = false){
     $file_list = array();
     $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
@@ -30,11 +39,29 @@
           $ta['dirname'] .= "/";
         }
         $ta['is_dir'] = is_dir($folder.$file);
-        //$ta[] = $folder;
-        //$ta[] = $folder.$file;
         $file_list[] = $ta;
       }
     }
+    
+    function mySort($a, $b){
+      if($a['is_dir'] && $b['is_dir']){
+        // Если оба - папки
+        return strcasecmp ( $a['basename'] , $b['basename'] );
+      }
+      if($a['is_dir'] && !$b['is_dir']){
+        return -1;
+      }
+      if(!$a['is_dir'] && $b['is_dir']){
+        return 1;
+      }
+      if(!$a['is_dir'] && !$b['is_dir']){
+        // Если оба - файлы
+        return strcasecmp ( $a['basename'] , $b['basename'] );
+      }
+    }
+    
+    usort($file_list, "mySort");
+    
     //return print_r($file_list, true);
     return json_encode($file_list,JSON_UNESCAPED_UNICODE);
   }

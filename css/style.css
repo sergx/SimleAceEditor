@@ -1,14 +1,42 @@
 #editor {
-  height: 100vh;
+  border:2px solid #23d160;
+  height: 80%;
 }
 
 .columns.main-colums{
   margin-bottom: 0;
 }
 .column.editor-column{
-  padding-bottom: 0;
+  /*padding-bottom: 0;*/
+}
+.columns.main-colums .column{
+  height: 100vh;
 }
 .file-list{
-  height: 100vh;
+  height: 100%;
   overflow: auto;
 }
+
+.file-list ul{
+  padding-left: 10px;
+}
+
+.editor_title{
+  padding: 10px;
+}
+.editor_title .title{
+  font-size: 1.2rem;
+}
+.file_basename{
+  font-size: 13px;
+}
+
+
+
+
+
+
+
+
+
+
