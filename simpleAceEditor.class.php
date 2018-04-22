@@ -18,6 +18,34 @@
     return $result;
   }
   
+  public function getFileSize($string){
+    $units = array(
+        'gb' => array('size' => 1073741824, 'label' => 'Gb'),
+        'mb' => array('size' => 1048576,    'label' => 'Mb'),
+        'kb' => array('size' => 1024,       'label' => 'Kb'),
+        'b'  => array('size' => 0,          'label' => 'b')
+    );
+    $size = filesize($string);
+    $unit = (isset($unit) && isset($units[$unit])) ? $unit : false;
+     
+    if ($size > 0) {
+        if ($unit === false) {
+            foreach ($units as $key => $properties) {
+                if ($size >= $properties['size']) {
+                    $unit = $key;
+                    break;
+                }
+            }
+        }
+        if ($unit != 'b')
+            $size = $size / $units[$unit]['size'];
+    }
+    else {
+        if ($unit === false) $unit = 'b';
+    }
+    return round($size, 1) . ' ' . $units[$unit]['label'];
+  }
+  
   public function fileList($folder = false){
     $file_list = array();
     $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
@@ -39,6 +67,11 @@
           $ta['dirname'] .= "/";
         }
         $ta['is_dir'] = is_dir($folder.$file);
+        
+        if(!$ta['is_dir']){
+          $ta['filesize'] = $this->getFileSize($folder.$file);
+        }
+        
         $file_list[] = $ta;
       }
     }
