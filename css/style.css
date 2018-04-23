@@ -50,9 +50,12 @@ span.file_basename.tag{
 .file-list .filename:hover span.file_basename.tag.is-white{
   background-color: rgba(0, 209, 178, 0.23);
 }
-span.file_basename.tag .fa{
+span.file_basename.tag .fa-caret-right{
   font-size: 1.5em;
   margin-right: 0.5em;
+}
+span.file_basename.tag .fa-pencil{
+  margin-left: 0.5em;
 }
 
 .file-list .filename {

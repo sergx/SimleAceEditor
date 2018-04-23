@@ -32,63 +32,77 @@
    - Кнопки действия: Сохранить / (Открыть в новом окне / скачать / Сохранить как ..)
    
   Фишки:
-   - ВебВоркером следить за тем, не изменился ли файл. К примеру другим разработчиком он мог отредактироваться.
+   - ВебВоркером следить за тем, не изменился ли файл. К примеру другим разработчиком он мог отредактироваться. То же - просто папки и другие файлы. Типа если изменился файл, то он как-то помечается - меняется цвет тега с размером файла.
    - При нажитии на tag с кол-вом файлов - перезагрузить этот элемент.
    - Заархивировать, скачать
    - Заказать, разархивировать
+   - ? вкладки...
   -->
   
 </head>
 <body>
-<style>
-
-</style>
+  <script>
+    var editor;
+    var modelist = ace.require("ace/ext/modelist");
+  </script>
+  <style>
+  
+  </style>
 <div class="columns main-colums is-marginless" id="files_control">
   <div class="column is-narrow is-paddingless">
     <file-list
     :allfiles="allfiles"
+    :apstatus="apstatus"
+    @changeselected="changeselected"
     ></file-list>
   </div>
   <div class="column is-paddingless editor-column">
     <div class="editor_title">
       <div class="field is-grouped">
-        <p class="control is-expanded" style="padding-top: 0.375em;">
-          <span class="title">{{activeFileName}}</span>
-        </p>
+        <div class="control field has-addons is-expanded">
+          <p class="control">
+            <a class="button is-static">
+              {{apstatus.activeFile.dirname}}
+            </a>
+          </p>
+          <p class="control is-expanded">
+            <input class="input" type="text" v-model.lazy="apstatus.activeFile.basename">
+          </p>
+        </div>
         <p class="control">
           <span class="button is-success" @click="saveFile">
             <span class="icon is-small">
               <i class="fa fa-check"></i>
             </span>
-            <span>Сохранить</span>
+            <span>Save</span>
           </span>
           <!-- is-loading -->
-          <a class="button is-success" title="Disabled button" disabled>Скачать</a>
+          <a class="button is-success" title="Disabled button" disabled>Download</a>
+          <a :href="['/'+apstatus.activeFile.dirname+apstatus.activeFile.basename]"  target="_blank" class="button is-success" title="Disabled button">Open</a>
         </p>
       </div>
-
-
     </div>
     <div id="editor">let life = "good";</div>
   </div>
 </div>
 
-<script type="text/x-template" id="file-list-template">
+<template id="file-list-template">
   <div class="file-list">
     <ul>
       <li v-for="(file, key, index)  in allfiles">
         <file-list-item
-        :file="file"
-        :key="index"
-        :allfiles="allfiles"
-        :selected="selected"
-        @changeselected="changeselected"
+          :file="file"
+          :key="index"
+          :allfiles="allfiles"
+          :apstatus="apstatus"
+          @changeselected="changeselected"
         ></file-list-item>
       </li>
     </ul>
   </div>
-</script>
-<script type="text/x-template" id="file-list-item-template">
+</template>
+
+<template id="file-list-item-template">
   <div :class="['icon_'+file.extension]">
     <div class="filename" @click="handleClick" :class="{active:isOpen, is_folder:isFolder, is_file:!isFolder}">
       <span class="file_basename tag" :class="{'is-primary':isOpen,'is-white':!isOpen && !fileInEditor, 'is-info':fileInEditor}">
@@ -102,36 +116,34 @@
     <ul v-if="isOpen">
       <li v-for="(file, key, index) in file.children">
         <file-list-item
-        :file="file"
-        :key="index"
-        :allfiles="allfiles"
-        :selected="selected"
-        @changeselected="changeselected"
+          :file="file"
+          :key="index"
+          :allfiles="allfiles"
+          :apstatus="apstatus"
+          @changeselected="changeselected"
         ></file-list-item>
       </li>
     </ul>
   </div>
-</script>
+</template>
 
-<script>
-var editor;
-var modelist = ace.require("ace/ext/modelist");
-</script>
+
 
 <script>
   Vue.component('file-list', {
     template: '#file-list-template'
     ,props: [
       'allfiles'
+      ,'apstatus'
     ]
-    ,data: function () {
-      return {
-        selected: undefined
-      }
-    }
+    //,data: function () {
+    //  return {
+    //    selected: undefined
+    //  }
+    //}
     ,methods:{
-      changeselected: function(id){
-        this.selected = id;
+      changeselected: function(apstatus){
+        this.$emit('changeselected', apstatus);
       }
     }
   });
@@ -141,7 +153,7 @@ var modelist = ace.require("ace/ext/modelist");
     ,props: [
       'file'
       ,'allfiles'
-      ,'selected'
+      ,'apstatus'
     ]
     ,data: function () {
       return {
@@ -157,11 +169,20 @@ var modelist = ace.require("ace/ext/modelist");
         return this.file.children && this.file.children.length;
       }
       ,fileInEditor: function(){
-        return this.selected === this._uid;
-        //return this._uid === this.fileInEditorUid;
+        return this.apstatus.selected === this._uid;
+      }
+    }
+    ,watch:{
+      'apstatus.activeFile.basename': function(newV, oldV){
+        console.log(this.apstatus.activeFile.dirname+newV);
+        
       }
     }
     ,methods:{
+      myTest:function(){
+        console.log(this.apstatus);
+      }
+      ,
       handleClick: function(){
         if(this.isFolder){
           return this.loadFolder();
@@ -170,11 +191,6 @@ var modelist = ace.require("ace/ext/modelist");
         }
       },
       loadFolder: function(){
-        /* TODO:
-            OK Проверить - стоит ли загружать файлы, т.к. они могут быть уже загружены
-            OK Скрыть или открыть папку
-        */
-        
         let thisX = this;
         if(thisX.childrenCount || thisX.childrenCount === 0 && thisX.isOpen){
           // Если уже загружен список файлов для папки
@@ -198,6 +214,7 @@ var modelist = ace.require("ace/ext/modelist");
             Выводить предупреждение, если это неизвестный тип файла, или файл слишком большой
             Сохранить файл по Ctrl+S
             Отобразить статус сохранен ли файл, или нет (свет кнопки, или обводки)
+            Если начали редактировать файл, и не сохранили его, то при переключении на другой файл выводить предупреждение.
         */
         
         let thisX = this;
@@ -207,28 +224,33 @@ var modelist = ace.require("ace/ext/modelist");
         }
         axios.post('simpleAceEditor.class.php', dataToSend )
           .then(function (response) {
-            //console.log(thisX);
-            //Vue.set(thisX, 'fileInEditor', thisX._uid);
-            //this.fileInEditorUid = thisX._uid;
-            //console.log(thisX);
-            //thisX.file.fileInEditor = true;
+            let apstatus = {activeFile:thisX.file,selected:thisX._uid};
             
-            //thisX.selected = thisX._uid;
-            
-            vm.activeFile = thisX.file;
-            
-            var mode = modelist.getModeForPath(dataToSend.data).mode;
-            editor.session.setMode(mode);
+            let mode = modelist.getModeForPath(dataToSend.data);
+            editor.session.setMode(mode.mode);
             editor.setValue(response.data);
-            
-            //thisX.$emit('changeselected', thisX._uid);
-            thisX.$emit('changeselected', thisX._uid);
+            thisX.$emit('changeselected', apstatus);
+            thisX.myTest();
           })
           .catch(function (error) {});
         
       }
-      ,changeselected:function(id){
-        this.$emit('changeselected', id);
+      ,renameFile: function(){
+        
+      }
+      /*
+      ,deleteFile: function(){
+        
+      }
+      ,copyFile: function(){
+        
+      }
+      ,saveAsFile: function(){
+        
+      }
+      */
+      ,changeselected:function(apstatus){
+        this.$emit('changeselected', apstatus);
       }
     }
   });
@@ -238,18 +260,23 @@ var modelist = ace.require("ace/ext/modelist");
     el: "#files_control"
     ,data: {
       allfiles: <? echo $ce->fileList(); ?>,
-      activeFile: {
-        dirname: "..",
-        basename: "..."
-      },
-      fileInEditorUid: 9999999
-    }
-    ,computed: {
-      activeFileName: function(){
-        //console.log(this.activeFile);
-        return this.activeFile.dirname+this.activeFile.basename;
+      apstatus:{
+        activeFile: {
+          dirname: "",
+          basename: ""
+        },
+        selected: undefined
       }
+
     }
+    //,computed: {
+    //  activeFile: function(){
+    //    return {
+    //      dirname: this.apstatus.activeFile.dirname,
+    //      basename: this.apstatus.activeFile.basename
+    //    }
+    //  }
+    //}
     ,mounted () {
       // https://ace.c9.io/demo/autoresize.html
       // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
@@ -263,7 +290,37 @@ var modelist = ace.require("ace/ext/modelist");
     }
     ,methods: {
       saveFile: function(){
-        console.log(editor.getValue());
+        if(!this.apstatus.activeFile.basename.length){
+          console.log("Нечего сохранять.");
+        }
+        let thisX = this;
+        axios.post(
+          'simpleAceEditor.class.php',
+          {
+            action: "saveFile",
+            data: {
+              filename: thisX.apstatus.activeFile.dirname+thisX.apstatus.activeFile.basename ,
+              content: editor.getValue()
+            }
+          }
+        )
+          .then(function (response) {
+            /*
+            let apstatus = {activeFile:thisX.file,selected:thisX._uid};
+            
+            let mode = modelist.getModeForPath(dataToSend.data);
+            editor.session.setMode(mode.mode);
+            thisX.$emit('changeselected', apstatus);
+            thisX.myTest();
+            */
+            console.log(response.data);
+          })
+          .catch(function (error) {});
+          
+        //console.log(editor.getValue());
+      }
+      ,changeselected: function(apstatus){
+        this.apstatus = apstatus;
       }
     }
   });

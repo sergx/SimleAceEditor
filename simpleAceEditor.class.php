@@ -1,4 +1,22 @@
 <?php
+
+
+
+define('MODX_API_MODE', true);
+require $_SERVER['DOCUMENT_ROOT'].'/index.php';
+
+// Включаем обработку ошибок
+$modx->getService('error','error.modError');
+$modx->setLogLevel(modX::LOG_LEVEL_INFO);
+$modx->setLogTarget(XPDO_CLI_MODE ? 'ECHO' : 'HTML');
+
+
+
+if(empty($_SESSION['modx.user.contextTokens']['mgr'])){
+  $modx->sendErrorPage();
+}
+
+
  class codeEditorACE {
   
   public function fileCasheFix($file /* string */){
@@ -107,6 +125,45 @@
     return $contents;
   }
   
+  public function saveFile($filename = false, $string = false){
+    if($string === false){
+      return false;
+    }
+    $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
+    /*
+    if(!is_dir($default_folder."sae/")){
+      mkdir($default_folder."sae/", 0777, true);
+    }
+    */
+    $fp = fopen($default_folder.$filename, "w");
+    
+    
+    $fwriten = fwrite($fp, $string);
+    
+    
+    $fwrite_info = array(
+      'fwriten' => $fwriten,
+      'strlen' => strlen($string),
+      'status' => $fwrite['strlen'] === $fwrite['fwriten'] ? true : false
+      );
+    fclose($fp);
+    return json_encode($fwrite_info);
+    
+    
+/*
+function fwrite_stream($fp, $string) {
+    for ($written = 0; $written < strlen($string); $written += $fwrite) {
+        $fwrite = fwrite($fp, substr($string, $written));
+        if ($fwrite === false) {
+            return $written;
+        }
+    }
+    return $written;
+}
+*/
+    
+  }
+  
   public function returnError($string = "Ошибка.."){
     echo json_encode(array("error" => $string),JSON_UNESCAPED_UNICODE);
     die;
@@ -134,6 +191,12 @@
             $ce->returnError("Line ".__LINE__.": Пустое поле data");
           }
           echo $ce->getFile($input_data['data']);
+        break;
+        case "saveFile":
+          if(empty($input_data['data'])){
+            $ce->returnError("Line ".__LINE__.": Пустое поле data");
+          }
+          echo $ce->saveFile($input_data['data']['filename'],$input_data['data']['content']);
         break;
         default:
           $ce->returnError("Line ".__LINE__.": Пустое поле action");
