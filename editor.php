@@ -11,9 +11,6 @@
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
   <script src="//cloud9ide.github.io/emmet-core/emmet.js"></script>
   <script src="js/require.js" type="text/javascript" charset="utf-8"></script>
-  <!-- <script src="ace/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script> -->
-  <!-- <script src="ace-builds/src/ext-modelist.js" type="text/javascript" charset="utf-8"></script> -->
-  <!-- <script src="ace-builds/src/ext-emmet.js" type="text/javascript" charset="utf-8"></script> -->
   
   <link rel="stylesheet" href="bulma/css/bulma.css">
   <link rel="stylesheet" href="<? echo $ce->fileCasheFix('css/style.css'); ?>">
@@ -82,11 +79,12 @@
           </span>
           <!-- is-loading -->
           <a class="button is-success" title="Disabled button" disabled>Download</a>
+          <span class="button is-danger" title="Disabled button" @click="deleteFile">Delete</span>
           <a :href="['/'+apstatus.activeFile.dirname+apstatus.activeFile.basename]"  target="_blank" class="button is-success" title="Disabled button">Open</a>
         </p>
       </div>
     </div>
-    <div id="editor">let life = "good";</div>
+    <div id="editor"></div>
   </div>
 </div>
 
@@ -109,7 +107,7 @@
 <template id="file-list-item-template">
   <div :class="['icon_'+file.extension]">
     <div class="filename" @click="handleClick" :class="{active:isOpen, is_folder:isFolder, is_file:!isFolder}">
-      <span class="file_basename tag" :class="{'is-primary':isOpen,'is-white':!isOpen && !fileInEditor, 'is-info':fileInEditor}">
+      <span class="file_basename tag" :class="{'is-primary':isOpen, 'is-white':!isOpen && !fileInEditor, 'is-info':fileInEditor}">
         <i class="fa fa-caret-right" v-if="isFolder"  :class="{'fa-rotate-90':isOpen}"></i>
         {{file.basename}} <!--{{selected}} {{_uid}} {{fileInEditor}}-->
         <i class="fa fa-pencil" v-if="fileInEditor"></i>
@@ -134,6 +132,8 @@
 
 
 <script>
+  var activeFileAtStart = false;
+  
   Vue.component('file-list', {
     template: '#file-list-template'
     ,props: [
@@ -165,7 +165,7 @@
       }
     }
     ,computed: {
-      // computed обновляются только когда их "формерователи" изменяются
+      // computed обновляются только когда их "формирователи" изменяются
       isFolder: function () {
         return this.file.is_dir;
       }
@@ -175,11 +175,16 @@
       ,fileInEditor: function(){
         return this.apstatus.selected === this._uid;
       }
+      //,fileDeleted: function(){
+      //  return this.apstatus.deleted.indexOf(this._uid) !== -1;
+      //}
     }
     ,watch:{
       'apstatus.activeFile.basename': function(newV, oldV){
         console.log(this.apstatus.activeFile.dirname+newV);
-        
+        if(this.activeFileAtStart){
+          console.log(activeFileAtStart.basename);
+        }
       }
     }
     ,methods:{
@@ -220,7 +225,6 @@
             Отобразить статус сохранен ли файл, или нет (свет кнопки, или обводки)
             Если начали редактировать файл, и не сохранили его, то при переключении на другой файл выводить предупреждение.
         */
-        
         let thisX = this;
         let dataToSend = {
           action : "getFile"
@@ -228,11 +232,18 @@
         }
         axios.post('simpleAceEditor.class.php', dataToSend )
           .then(function (response) {
-            let apstatus = {activeFile:thisX.file,selected:thisX._uid};
+            activeFileAtStart = JSON.parse(JSON.stringify(thisX.file));
             
+            let apstatus = {
+              activeFile:thisX.file,
+              selected:thisX._uid,
+              deleted:thisX.apstatus.deleted
+            };
             let mode = modelist.getModeForPath(dataToSend.data);
+            
             editor.session.setMode(mode.mode);
             editor.setValue(response.data);
+            editor.clearSelection();
             thisX.$emit('changeselected', apstatus);
             thisX.myTest();
           })
@@ -252,6 +263,9 @@
       ,saveAsFile: function(){
         
       }
+      ,startNewFile: function(){
+        
+      }
       */
       ,changeselected:function(apstatus){
         this.$emit('changeselected', apstatus);
@@ -269,7 +283,8 @@
           dirname: "",
           basename: ""
         },
-        selected: undefined
+        selected: undefined,
+        deleted: [321]
       }
 
     }
@@ -296,18 +311,7 @@
         editor.setTheme("ace/theme/chrome");
         editor.session.setMode("ace/mode/html");
         editor.setOption("enableEmmet", true);
-        (function () {
-            modelist = ace.require("ace/ext/modelist");
-            // the file path could come from an xmlhttp request, a drop event,
-            // or any other scriptable file loading process.
-            // Extensions could consume the modelist and use it to dynamically
-            // set the editor mode. Webmasters could use it in their scripts
-            // for site specific purposes as well.
-            var filePath = "blahblah/weee/some.js";
-            var mode = modelist.getModeForPath(filePath).mode;
-            console.log(mode);
-            editor.session.setMode(mode);
-        }());
+        modelist = ace.require("ace/ext/modelist");
       });
     }
     ,methods: {
@@ -323,20 +327,75 @@
           {
             action: "saveFile",
             data: {
-              filename: thisX.apstatus.activeFile.dirname+thisX.apstatus.activeFile.basename ,
+              oldfilename: activeFileAtStart.dirname+activeFileAtStart.basename,
+              filename: thisX.apstatus.activeFile.dirname+thisX.apstatus.activeFile.basename,
               content: editor.getValue()
             }
           }
         )
           .then(function (response) {
-            let apstatus = {activeFile:thisX.file,selected:thisX._uid};
+            if(response.data.error.length){
+              console.log(response.data.error);
+              alert("Error here..");
+              return;
+            }
+            
+            activeFileAtStart = JSON.parse(JSON.stringify(thisX.file));
+            let apstatus = {
+              activeFile:thisX.file,
+              selected:thisX._uid
+            };
             let mode = modelist.getModeForPath(dataToSend.data.filename);
             editor.session.setMode(mode.mode);
             thisX.$emit('changeselected', apstatus);
-            thisX.myTest();
-            console.log(response.data);
           })
           .catch(function (error) {});
+          
+        //console.log(editor.getValue());
+      }
+      ,
+      deleteFile: function(){
+        if(!activeFileAtStart.basename.length){
+          console.log("Nothing to delete");
+        }
+        let thisX = this;
+        console.log(activeFileAtStart);
+        
+        axios.post(
+          'simpleAceEditor.class.php',
+          {
+            action: "deleteFile",
+            data: {
+              pathinfo: activeFileAtStart
+            }
+          }
+        )
+          .then(function (response) {
+            if(response.data.error.length){
+              console.log(response.data.error);
+              alert("Error here..");
+              return;
+            }
+            alert("File deleted");
+            location.reload();
+            /*
+            activeFileAtStart = false;
+            let apstatus = {
+              activeFile:false,
+              selected:false,
+              deleted:thisX.apstatus.deleted
+            };
+            
+            apstatus.deleted.push(thisX._uid);
+            
+            
+            editor.setValue("");
+            editor.clearSelection();
+            
+            thisX.$emit('changeselected', apstatus);
+            */
+          })
+          .catch(function (error) {console.log(error);});
           
         //console.log(editor.getValue());
       }
@@ -347,13 +406,7 @@
   });
 </script>
 <script>
-  console.info(
-
-'%c <?php 
-  $time_total = intval((microtime(true) - $time_start)*10000,10)/10000;
-  echo "PHP: ".$time_total." сек";
-?> ', 'background:#91e8b0;font-weight:bold;'
-    );
+  console.info('%c <? echo "PHP: ". intval((microtime(true) - $time_start)*10000,10)/10000 ." сек"; ?> ', 'background:#91e8b0;font-weight:bold;');
 </script>
 </body>
 </html>

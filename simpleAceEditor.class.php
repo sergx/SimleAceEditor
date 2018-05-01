@@ -120,33 +120,55 @@ if(empty($_SESSION['modx.user.contextTokens']['mgr'])){
   public function getFile($filename = false){
     $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
     $handle = fopen($default_folder.$filename, "r");
-    $contents = fread($handle, filesize($default_folder.$filename));
+    
+    $filesize = filesize($default_folder.$filename);
+    if($filesize){
+      $contents = fread($handle, filesize($default_folder.$filename));
+    }else{
+      $contents = fread($handle, 1);
+    }
     fclose($handle);
     return $contents;
   }
   
-  public function saveFile($filename = false, $string = false){
-    if($string === false){
-      return false;
+  public function saveFile($input_data){
+    $fwrite_info = array('error' => array());
+    
+    if($input_data['content'] === false || !strlen($input_data['oldfilename']) || !strlen($input_data['filename'])){
+      $fwrite_info['error'][] = "Input data is wrong";
+    }else{
+      $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
+      /*
+      if(!is_dir($default_folder."sae/")){
+        mkdir($default_folder."sae/", 0777, true);
+      }
+      */
+      if($input_data['oldfilename'] != $input_data['filename']){
+        // file was renenamed
+        //unlink($default_folder.$input_data['oldfilename']);
+        if(!file_exists($default_folder.$input_data['filename'])){
+          $delete_oldfile = true;
+          rename($default_folder.$input_data['oldfilename'], $default_folder.$input_data['filename']);
+        }else{
+          $fwrite_info['error'][] = "Can not be renamed. File ".$input_data['filename']." alredy exists. Saved to ".$input_data['oldfilename'];
+          $input_data['filename'] = $input_data['oldfilename'];
+        }
+        
+      }
+        
+      $fp = fopen($default_folder.$input_data['filename'], "w");
+      
+      $fwriten = fwrite($fp, $input_data['content']);
+      
+      $fwrite_info = array(
+        'fwriten' => $fwriten,
+        'strlen' => strlen($input_data['content']),
+        'status' => $fwrite['strlen'] === $fwrite['fwriten'] ? true : false,
+        );
+      fclose($fp);
+
     }
-    $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
-    /*
-    if(!is_dir($default_folder."sae/")){
-      mkdir($default_folder."sae/", 0777, true);
-    }
-    */
-    $fp = fopen($default_folder.$filename, "w");
     
-    
-    $fwriten = fwrite($fp, $string);
-    
-    
-    $fwrite_info = array(
-      'fwriten' => $fwriten,
-      'strlen' => strlen($string),
-      'status' => $fwrite['strlen'] === $fwrite['fwriten'] ? true : false
-      );
-    fclose($fp);
     return json_encode($fwrite_info);
     
     
@@ -162,6 +184,23 @@ function fwrite_stream($fp, $string) {
 }
 */
     
+  }
+  
+  public function deleteFile($input_data){
+    $return = array('error' => array());
+    $default_folder = $_SERVER['DOCUMENT_ROOT'].'/';
+    
+    if($input_data['is_dir'] || empty($input_data['basename'])){
+      $return['error'][] = "Wrong input";
+      $return['error'][] = $input_data;
+    }elseif(!file_exists($default_folder.$input_data['dirname'].$input_data['basename'])){
+      $return['error'][] = "file ".$input_data['dirname'].$input_data['basename']." dose not exists.";
+    }else{
+      if(!unlink($default_folder.$input_data['dirname'].$input_data['basename'])){
+        $return['error'][] = "Errow while deleting file";
+      }
+    }
+    return json_encode($return);
   }
   
   public function returnError($string = "Ошибка.."){
@@ -196,7 +235,13 @@ function fwrite_stream($fp, $string) {
           if(empty($input_data['data'])){
             $ce->returnError("Line ".__LINE__.": Пустое поле data");
           }
-          echo $ce->saveFile($input_data['data']['filename'],$input_data['data']['content']);
+          echo $ce->saveFile($input_data['data']);
+        break;
+        case "deleteFile":
+          if(empty($input_data['data']['pathinfo'])){
+            $ce->returnError("Line ".__LINE__.": Пустое поле data");
+          }
+          echo $ce->deleteFile($input_data['data']['pathinfo']);
         break;
         default:
           $ce->returnError("Line ".__LINE__.": Пустое поле action");
