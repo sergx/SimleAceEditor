@@ -9,9 +9,11 @@
   <!-- development version, includes helpful console warnings -->
   <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="//cloud9ide.github.io/emmet-core/emmet.js"></script>
   <script src="js/require.js" type="text/javascript" charset="utf-8"></script>
-  <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-  <script src="ace-builds/src-noconflict/ext-modelist.js" type="text/javascript" charset="utf-8"></script>
+  <!-- <script src="ace/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script> -->
+  <!-- <script src="ace-builds/src/ext-modelist.js" type="text/javascript" charset="utf-8"></script> -->
+  <!-- <script src="ace-builds/src/ext-emmet.js" type="text/javascript" charset="utf-8"></script> -->
   
   <link rel="stylesheet" href="bulma/css/bulma.css">
   <link rel="stylesheet" href="<? echo $ce->fileCasheFix('css/style.css'); ?>">
@@ -43,8 +45,10 @@
 <body>
   <script>
     var editor;
-    var modelist = ace.require("ace/ext/modelist");
+    var modelist/* = ace.require("ace/ext/modelist")*/;
+    require.config({paths: { "ace" : "ace/lib/ace"}});
   </script>
+  <!-- load ace emmet extension -->
   <style>
   
   </style>
@@ -280,13 +284,31 @@
     ,mounted () {
       // https://ace.c9.io/demo/autoresize.html
       // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
-      editor = ace.edit("editor", {
-        wrapBehavioursEnabled: true
-        ,wrap: true
-        ,tabSize:2
+      //var aceU;
+      
+      
+      require(["ace/ace", "ace/ext/emmet", "ace/ext/modelist"], function(ace) {
+        editor = ace.edit("editor", {
+          wrapBehavioursEnabled: true,
+          wrap: true,
+          tabSize:2
+        });
+        editor.setTheme("ace/theme/chrome");
+        editor.session.setMode("ace/mode/html");
+        editor.setOption("enableEmmet", true);
+        (function () {
+            modelist = ace.require("ace/ext/modelist");
+            // the file path could come from an xmlhttp request, a drop event,
+            // or any other scriptable file loading process.
+            // Extensions could consume the modelist and use it to dynamically
+            // set the editor mode. Webmasters could use it in their scripts
+            // for site specific purposes as well.
+            var filePath = "blahblah/weee/some.js";
+            var mode = modelist.getModeForPath(filePath).mode;
+            console.log(mode);
+            editor.session.setMode(mode);
+        }());
       });
-      editor.setTheme("ace/theme/chrome");
-      editor.session.setMode("ace/mode/html");
     }
     ,methods: {
       saveFile: function(){
@@ -294,6 +316,8 @@
           console.log("Нечего сохранять.");
         }
         let thisX = this;
+        //console.log(editor.getValue());
+        
         axios.post(
           'simpleAceEditor.class.php',
           {
@@ -305,14 +329,11 @@
           }
         )
           .then(function (response) {
-            /*
             let apstatus = {activeFile:thisX.file,selected:thisX._uid};
-            
-            let mode = modelist.getModeForPath(dataToSend.data);
+            let mode = modelist.getModeForPath(dataToSend.data.filename);
             editor.session.setMode(mode.mode);
             thisX.$emit('changeselected', apstatus);
             thisX.myTest();
-            */
             console.log(response.data);
           })
           .catch(function (error) {});
