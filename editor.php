@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/font-awesome.min.css">
   <!-- development version, includes helpful console warnings -->
   <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="//unpkg.com/vue-router/dist/vue-router.js"></script>
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
   <script src="//cloud9ide.github.io/emmet-core/emmet.js"></script>
   <script src="js/require.js" type="text/javascript" charset="utf-8"></script>
@@ -355,6 +356,8 @@
       }
       ,
       deleteFile: function(){
+        alert("deleteFile function is disabled for security reason");
+        return;
         if(!activeFileAtStart.basename.length){
           console.log("Nothing to delete");
         }
