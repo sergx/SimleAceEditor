@@ -72,7 +72,7 @@
           </p>
         </div>
         <p class="control">
-          <span class="button is-success" @click="saveFile" :disabled="loadedfile.changed === false">
+          <span class="button is-success" @click="saveFile" :disabled="!loadedfile.changed">
             <span class="icon is-small">
               <i class="fa fa-check"></i>
             </span>
@@ -300,7 +300,7 @@
       // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
       //var aceU;
       
-      
+      let thisX = this;
       require(["ace/ace", "ace/ext/emmet", "ace/ext/modelist"], function(ace) {
         editor = ace.edit("editor", {
           wrapBehavioursEnabled: true,
@@ -310,6 +310,13 @@
         editor.setTheme("ace/theme/chrome");
         editor.session.setMode("ace/mode/html");
         editor.setOption("enableEmmet", true);
+        editor.commands.addCommand({
+          name: "saveFile",
+          bindKey: {win: "Ctrl-s", mac: "Command-s"},
+          exec: function(editor) {
+            thisX.saveFile();
+          }
+        });
         modelist = ace.require("ace/ext/modelist");
       });
     }
@@ -407,7 +414,7 @@
       ,changeselected: function(apstatus){
         let thisX = this;
         thisX.apstatus = apstatus;
-        thisX.loadedfile.changed = false;
+        //thisX.loadedfile.changed = false;
         editor.on('change', function() {
           thisX.loadedfile.changed = true;
         });
