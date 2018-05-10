@@ -58,7 +58,7 @@
     @changeselected="changeselected"
     ></file-list>
   </div>
-  <div class="column is-paddingless editor-column">
+  <div class="column is-paddingless editor-column" :class="{saved: loadedfile.changed === false}">
     <div class="editor_title">
       <div class="field is-grouped">
         <div class="control field has-addons is-expanded">
@@ -72,7 +72,7 @@
           </p>
         </div>
         <p class="control">
-          <span class="button is-success" @click="saveFile">
+          <span class="button is-success" @click="saveFile" :disabled="loadedfile.changed === false">
             <span class="icon is-small">
               <i class="fa fa-check"></i>
             </span>
@@ -141,11 +141,6 @@
       'allfiles'
       ,'apstatus'
     ]
-    //,data: function () {
-    //  return {
-    //    selected: undefined
-    //  }
-    //}
     ,methods:{
       changeselected: function(apstatus){
         this.$emit('changeselected', apstatus);
@@ -286,6 +281,9 @@
         },
         selected: undefined,
         deleted: [321]
+      },
+      loadedfile:{
+        changed: undefined
       }
 
     }
@@ -318,7 +316,12 @@
     ,methods: {
       saveFile: function(){
         if(!this.apstatus.activeFile.basename.length){
-          console.log("Нечего сохранять.");
+          console.log("Nothing to save");
+          return;
+        }
+        if(!this.loadedfile.changed){
+          console.log("File was not changed");
+          return;
         }
         let thisX = this;
         //console.log(editor.getValue());
@@ -335,13 +338,12 @@
           }
         )
           .then(function (response) {
-            if(response.data.error.length){
+            if(response.data.error){
               console.log(response.data.error);
-              alert("Error here..");
+              alert("Error in console");
               return;
             }
-            
-            activeFileAtStart = JSON.parse(JSON.stringify(thisX.file));
+            thisX.loadedfile.changed = false;
             let apstatus = {
               activeFile:thisX.file,
               selected:thisX._uid
@@ -350,7 +352,7 @@
             editor.session.setMode(mode.mode);
             thisX.$emit('changeselected', apstatus);
           })
-          .catch(function (error) {});
+          .catch(function (error) {console.log(error);});
           
         //console.log(editor.getValue());
       }
@@ -403,7 +405,12 @@
         //console.log(editor.getValue());
       }
       ,changeselected: function(apstatus){
-        this.apstatus = apstatus;
+        let thisX = this;
+        thisX.apstatus = apstatus;
+        thisX.loadedfile.changed = false;
+        editor.on('change', function() {
+          thisX.loadedfile.changed = true;
+        });
       }
     }
   });

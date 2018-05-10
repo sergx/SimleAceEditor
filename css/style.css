@@ -5,6 +5,9 @@
 #editor.ace_focus{
   border: 1px solid #009ad1;
 }
+.saved > #editor{
+  outline: 2px solid #23d160;
+}
 
 .columns.main-colums{
   margin-bottom: 0;
