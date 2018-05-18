@@ -1,21 +1,5 @@
 <?php
 
-
-/*
-define('MODX_API_MODE', true);
-require $_SERVER['DOCUMENT_ROOT'].'/index.php';
-
-// Включаем обработку ошибок
-$modx->getService('error','error.modError');
-$modx->setLogLevel(modX::LOG_LEVEL_INFO);
-$modx->setLogTarget(XPDO_CLI_MODE ? 'ECHO' : 'HTML');
-
-
-
-if(empty($_SESSION['modx.user.contextTokens']['mgr'])){
-  $modx->sendErrorPage();
-}
-*/
 require_once 'auth.php';
 
 
