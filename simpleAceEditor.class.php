@@ -1,7 +1,7 @@
 <?php
 
 
-
+/*
 define('MODX_API_MODE', true);
 require $_SERVER['DOCUMENT_ROOT'].'/index.php';
 
@@ -15,6 +15,8 @@ $modx->setLogTarget(XPDO_CLI_MODE ? 'ECHO' : 'HTML');
 if(empty($_SESSION['modx.user.contextTokens']['mgr'])){
   $modx->sendErrorPage();
 }
+*/
+require_once 'auth.php';
 
 
  class codeEditorACE {
@@ -160,11 +162,11 @@ if(empty($_SESSION['modx.user.contextTokens']['mgr'])){
       
       $fwriten = fwrite($fp, $input_data['content']);
       
-      $fwrite_info = array(
+      $fwrite_info = array_merge($fwrite_info, array(
         'fwriten' => $fwriten,
         'strlen' => strlen($input_data['content']),
-        'status' => $fwrite['strlen'] === $fwrite['fwriten'] ? true : false,
-        );
+        'status' => $fwrite_info['strlen'] === $fwrite_info['fwriten'] ? true : false,
+        ));
       fclose($fp);
 
     }
