@@ -119,7 +119,7 @@ require_once 'auth.php';
   
   public function saveFile($input_data){
     $fwrite_info = array('error' => array());
-    
+     
     if($input_data['content'] === false || !strlen($input_data['oldfilename']) || !strlen($input_data['filename'])){
       $fwrite_info['error'][] = "Input data is wrong";
     }else{

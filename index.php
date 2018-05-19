@@ -23,7 +23,7 @@ include 'simpleAceEditor.class.php'; ?>
    - получаем список файлов корневой дерриктории JSON
    - При нажатии на папку - подгружаем новые файлы
    - Сохранение файла
-   
+    
   Фронт
    - Сформировать список файлов, с выделением папок
    - При нажатии на папку либо загружается с сервера информация, либо просто открывается список содержимого
@@ -345,7 +345,7 @@ include 'simpleAceEditor.class.php'; ?>
           }
         )
           .then(function (response) {
-            if(response.data.error){
+            if(response.data.error.lenght){
               console.log(response.data.error);
               alert("Error in console");
               return;
