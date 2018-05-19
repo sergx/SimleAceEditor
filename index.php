@@ -222,10 +222,10 @@ include 'simpleAceEditor.class.php'; ?>
         */
         let thisX = this;
         let dataToSend = {
-          action : "getFile"
-          ,data : thisX.file.dirname + thisX.file.basename
+          action : "getFile",
+          data : thisX.file.dirname + thisX.file.basename
         }
-        axios.post('simpleAceEditor.class.php', dataToSend )
+        axios.post('simpleAceEditor.class.php', dataToSend, { responseType: 'text' } )
           .then(function (response) {
             activeFileAtStart = JSON.parse(JSON.stringify(thisX.file));
             
@@ -235,8 +235,11 @@ include 'simpleAceEditor.class.php'; ?>
               deleted:thisX.apstatus.deleted
             };
             let mode = modelist.getModeForPath(dataToSend.data);
-            
             editor.session.setMode(mode.mode);
+            console.log(typeof response.data);
+            //if(typeof response.data === "object"){
+            //  response.data = JSON.stringify(response.data);
+            //}
             editor.setValue(response.data);
             editor.clearSelection();
             thisX.$emit('changeselected', apstatus);
