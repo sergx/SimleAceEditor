@@ -1,11 +1,11 @@
-<?php $time_start = microtime(true); ?>
+<?php $time_start = microtime(true); 
 
-<?php include 'simpleAceEditor.class.php'; ?>
+include 'simpleAceEditor.class.php'; ?>
 <!DOCTYPE html>
 <html>
 <head>
   <title>SimpleAceEditor</title>
-  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/font-awesome.min.css">
   <!-- development version, includes helpful console warnings -->
   <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <!-- <script src="//unpkg.com/vue-router/dist/vue-router.js"></script> -->
