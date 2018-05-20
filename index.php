@@ -9,8 +9,8 @@ include 'simpleAceEditor.class.php'; ?>
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
   <link rel="stylesheet" href="css/font-awesome.min.css"> 
   <!-- development version, includes helpful console warnings -->
-  <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> 
-  <!-- <script src="//unpkg.com/vue-router/dist/vue-router.js"></script> -->
+  <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="//unpkg.com/vue-router/dist/vue-router.js"></script>
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
   <script src="//cloud9ide.github.io/emmet-core/emmet.js"></script>
   <script src="js/require.js" type="text/javascript" charset="utf-8"></script>
@@ -19,15 +19,11 @@ include 'simpleAceEditor.class.php'; ?>
    
   <!--
   Задачи проекта
-   - Вывод в title [SAE: filename.php in foldername] // "SAE: " Стоит заменить на favicon
-   - отступ от имени файла до размера файла в CSS
-   - позволить выделять имена файлов и папок CSS
-   - Если файл был изменен, и происходит переход к другому файлу - уточнить алертом - А стоит ли? Можно ли уходить?
    - Открыть файл по ссылке
+   - Если открыт файл по ссылке, то подгружаются папки до этого файла
    - Открыть в отдельном окне
    - Создать файл
    - Переместить файл/папку
-   - Если открыт файл, то подгружаются папки до этого файла
    - Кнопки действия: Сохранить как
    - Вверху, над списком файлов - панель инструментов со всеми этими действиями (Создать / Переместить / Архивировать)
    
@@ -154,13 +150,23 @@ include 'simpleAceEditor.class.php'; ?>
       'file'
       ,'allfiles'
       ,'apstatus'
-    ]
-    ,data: function () {
+    ],
+    data: function () {
       return {
         isOpen: false
       }
-    }
-    ,computed: {
+    },
+    created:function () {
+      //if(this.file.dirname.length && this.file.dirname.indexOf(this.apstatus.fileonload.dir) === 0){
+      //  loadFolder();
+      //}
+      
+      
+      //if(this.file.is_dir){
+        //console.log(this.file);
+      //}
+    },
+    computed: {
       // computed обновляются только когда их "формирователи" изменяются
       isFolder: function () {
         return this.file.is_dir;
@@ -174,16 +180,16 @@ include 'simpleAceEditor.class.php'; ?>
       //,fileDeleted: function(){
       //  return this.apstatus.deleted.indexOf(this._uid) !== -1;
       //}
-    }
-    ,watch:{
+    },
+    watch:{
       //'apstatus.activeFile.basename': function(newV, oldV){
       //  console.log(this.apstatus.activeFile.dirname+newV);
       //  if(this.activeFileAtStart){
       //    console.log(activeFileAtStart.basename);
       //  }
       //}
-    }
-    ,methods:{
+    },
+    methods:{
       myTest:function(){
         //console.log(this.apstatus);
       },
@@ -226,7 +232,7 @@ include 'simpleAceEditor.class.php'; ?>
           data : thisX.file.dirname + thisX.file.basename
         }
         let confirmLoad = true;
-        console.log(thisX.file);
+        //console.log(thisX.file);
         
         // If file is to big
         if(thisX.file.filesize.indexOf("Mb") !== -1 || thisX.file.filesize.indexOf("Gb") !== -1){
@@ -245,12 +251,17 @@ include 'simpleAceEditor.class.php'; ?>
         axios.post('simpleAceEditor.class.php', dataToSend, { responseType: 'text' } )
           .then(function (response) {
             activeFileAtStart = JSON.parse(JSON.stringify(thisX.file));
-            
+            /*
             let apstatus = {
               activeFile:thisX.file,
               selected:thisX._uid,
               deleted:thisX.apstatus.deleted
             };
+            */
+            let apstatus = thisX.apstatus;
+            apstatus.activeFile = thisX.file;
+            apstatus.selected = thisX._uid;
+            
             let mode = modelist.getModeForPath(dataToSend.data);
             editor.session.setMode(mode.mode);
             editor.setValue(response.data);
@@ -258,6 +269,7 @@ include 'simpleAceEditor.class.php'; ?>
             thisX.$emit('changeselected', apstatus);
             thisX.myTest();
             document.title = thisX.file.basename + " ● " + (thisX.file.dirname.length ? thisX.file.dirname : "/") ;
+            router.push({ query: { folder: thisX.file.dirname, file: thisX.file.basename }});
           })
           .catch(function (error) {});
       },
@@ -283,11 +295,11 @@ include 'simpleAceEditor.class.php'; ?>
       }
     }
   });
-  
-
+  const router = new VueRouter({mode: 'history'});
   var vm = new Vue({
-    el: "#files_control"
-    ,data: {
+    el: "#files_control",
+    router: router,
+    data: {
       allfiles: <? echo $ce->fileList(); ?>,
       apstatus:{
         activeFile: {
@@ -300,8 +312,7 @@ include 'simpleAceEditor.class.php'; ?>
       loadedfile:{
         changed: undefined
       }
-
-    }
+    },
     //,computed: {
     //  activeFile: function(){
     //    return {
@@ -310,10 +321,10 @@ include 'simpleAceEditor.class.php'; ?>
     //    }
     //  }
     //}
-    ,mounted () {
+    mounted () {
       // https://ace.c9.io/demo/autoresize.html
       // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
-      //var aceU;
+      // var aceU;
       
       let thisX = this;
       require(["ace/ace", "ace/ext/emmet", "ace/ext/modelist"], function(ace) {
@@ -334,8 +345,12 @@ include 'simpleAceEditor.class.php'; ?>
         });
         modelist = ace.require("ace/ext/modelist");
       });
-    }
-    ,methods: {
+      
+      console.log(this.$route.query);
+      console.log(this.allfiles);
+      
+    },
+    methods: {
       saveFile: function(){
         if(!this.apstatus.activeFile.basename.length){
           console.log("Nothing to save");
@@ -363,13 +378,10 @@ include 'simpleAceEditor.class.php'; ?>
               return;
             }
             thisX.loadedfile.changed = false;
-            let apstatus = {
-              activeFile:thisX.file,
-              selected:thisX._uid
-            };
+            
             let mode = modelist.getModeForPath(dataToSend.data.filename);
             editor.session.setMode(mode.mode);
-            thisX.$emit('changeselected', apstatus);
+            
             document.title = thisX.apstatus.activeFile.basename + " ● " +  (thisX.apstatus.activeFile.dirname.length ? thisX.apstatus.activeFile.dirname : "/");
           })
           .catch(function (error) {console.log(error);});
@@ -401,22 +413,6 @@ include 'simpleAceEditor.class.php'; ?>
             }
             alert("File deleted");
             location.reload();
-            /*
-            activeFileAtStart = false;
-            let apstatus = {
-              activeFile:false,
-              selected:false,
-              deleted:thisX.apstatus.deleted
-            };
-            
-            apstatus.deleted.push(thisX._uid);
-            
-            
-            editor.setValue("");
-            editor.clearSelection();
-            
-            thisX.$emit('changeselected', apstatus);
-            */
           })
           .catch(function (error) {console.log(error);});
           
