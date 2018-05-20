@@ -412,6 +412,7 @@ include 'simpleAceEditor.class.php'; ?>
             editor.session.setMode(mode.mode);
             
             document.title = thisX.apstatus.activeFile.basename + " ● " +  (thisX.apstatus.activeFile.dirname.length ? thisX.apstatus.activeFile.dirname : "/");
+            router.push({ query: { dirname: thisX.apstatus.activeFile.dirname, basename: thisX.apstatus.activeFile.basename }});
           })
           .catch(function (error) {console.log(error);});
           
