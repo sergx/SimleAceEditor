@@ -5,9 +5,11 @@ include 'simpleAceEditor.class.php'; ?>
 <html>
 <head>
   <title>SimpleAceEditor</title>
-  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"> 
+  <link rel="stylesheet" href="css/font-awesome.min.css"> 
   <!-- development version, includes helpful console warnings -->
-  <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> 
   <!-- <script src="//unpkg.com/vue-router/dist/vue-router.js"></script> -->
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
   <script src="//cloud9ide.github.io/emmet-core/emmet.js"></script>
@@ -236,10 +238,6 @@ include 'simpleAceEditor.class.php'; ?>
             };
             let mode = modelist.getModeForPath(dataToSend.data);
             editor.session.setMode(mode.mode);
-            console.log(typeof response.data);
-            //if(typeof response.data === "object"){
-            //  response.data = JSON.stringify(response.data);
-            //}
             editor.setValue(response.data);
             editor.clearSelection();
             thisX.$emit('changeselected', apstatus);
@@ -334,10 +332,7 @@ include 'simpleAceEditor.class.php'; ?>
         }
         let thisX = this;
         //console.log(editor.getValue());
-        
-        axios.post(
-          'simpleAceEditor.class.php',
-          {
+        let dataToSend = {
             action: "saveFile",
             data: {
               oldfilename: activeFileAtStart.dirname+activeFileAtStart.basename,
@@ -345,6 +340,9 @@ include 'simpleAceEditor.class.php'; ?>
               content: editor.getValue()
             }
           }
+        axios.post(
+          'simpleAceEditor.class.php',
+          dataToSend
         )
           .then(function (response) {
             if(response.data.error.lenght){
