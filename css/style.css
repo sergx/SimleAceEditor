@@ -49,10 +49,6 @@ span.file_basename.tag{
   margin-bottom: 2px;
   margin-top: 1px;
   height: 1.8em;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 .file-list .filename:hover span.file_basename.tag.is-white{
   background-color: rgba(0, 209, 178, 0.23);
@@ -73,6 +69,11 @@ span.file_basename.tag .fa-pencil{
 .filename .tag.is-light {
     margin-right: 5px;
     color: #9c9c9c;
+    margin-left: 5px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .now_in_editor span.file_basename.tag{
   background-color: #23d160;

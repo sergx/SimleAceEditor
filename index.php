@@ -14,10 +14,9 @@ include 'simpleAceEditor.class.php'; ?>
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
   <script src="//cloud9ide.github.io/emmet-core/emmet.js"></script>
   <script src="js/require.js" type="text/javascript" charset="utf-8"></script>
-  
   <link rel="stylesheet" href="bulma/css/bulma.css">
   <link rel="stylesheet" href="<? echo $ce->fileCasheFix('css/style.css'); ?>">
-  
+   
   <!--
   Задачи проекта
    - Вывод в title [SAE: filename.php in foldername] // "SAE: " Стоит заменить на favicon
@@ -177,18 +176,17 @@ include 'simpleAceEditor.class.php'; ?>
       //}
     }
     ,watch:{
-      'apstatus.activeFile.basename': function(newV, oldV){
-        console.log(this.apstatus.activeFile.dirname+newV);
-        if(this.activeFileAtStart){
-          console.log(activeFileAtStart.basename);
-        }
-      }
+      //'apstatus.activeFile.basename': function(newV, oldV){
+      //  console.log(this.apstatus.activeFile.dirname+newV);
+      //  if(this.activeFileAtStart){
+      //    console.log(activeFileAtStart.basename);
+      //  }
+      //}
     }
     ,methods:{
       myTest:function(){
-        console.log(this.apstatus);
-      }
-      ,
+        //console.log(this.apstatus);
+      },
       handleClick: function(){
         if(this.isFolder){
           return this.loadFolder();
@@ -227,6 +225,23 @@ include 'simpleAceEditor.class.php'; ?>
           action : "getFile",
           data : thisX.file.dirname + thisX.file.basename
         }
+        let confirmLoad = true;
+        console.log(thisX.file);
+        
+        // If file is to big
+        if(thisX.file.filesize.indexOf("Mb") !== -1 || thisX.file.filesize.indexOf("Gb") !== -1){
+          if(!confirm("File size of "+thisX.file.basename+" is "+thisX.file.filesize+". Load anyway?")){
+            return;
+          }
+        }
+        
+        // If current file wasn't saved
+        if(vm.loadedfile.changed){
+          if(!confirm("Changes in "+thisX.apstatus.activeFile.basename+" wasn't saved. Load another file?")){
+            return;
+          }
+        }
+
         axios.post('simpleAceEditor.class.php', dataToSend, { responseType: 'text' } )
           .then(function (response) {
             activeFileAtStart = JSON.parse(JSON.stringify(thisX.file));
@@ -245,11 +260,10 @@ include 'simpleAceEditor.class.php'; ?>
             document.title = thisX.file.basename + " ● " + (thisX.file.dirname.length ? thisX.file.dirname : "/") ;
           })
           .catch(function (error) {});
+      },
+      renameFile: function(){
         
-      }
-      ,renameFile: function(){
-        
-      }
+      },
       /*
       ,deleteFile: function(){
         
@@ -264,7 +278,7 @@ include 'simpleAceEditor.class.php'; ?>
         
       }
       */
-      ,changeselected:function(apstatus){
+      changeselected:function(apstatus){
         this.$emit('changeselected', apstatus);
       }
     }
@@ -341,10 +355,7 @@ include 'simpleAceEditor.class.php'; ?>
               content: editor.getValue()
             }
           }
-        axios.post(
-          'simpleAceEditor.class.php',
-          dataToSend
-        )
+        axios.post( 'simpleAceEditor.class.php', dataToSend)
           .then(function (response) {
             if(response.data.error.lenght){
               console.log(response.data.error);
@@ -364,8 +375,7 @@ include 'simpleAceEditor.class.php'; ?>
           .catch(function (error) {console.log(error);});
           
         //console.log(editor.getValue());
-      }
-      ,
+      },
       deleteFile: function(){
         alert("deleteFile function is disabled for security reason");
         return;
@@ -373,7 +383,6 @@ include 'simpleAceEditor.class.php'; ?>
           console.log("Nothing to delete");
         }
         let thisX = this;
-        console.log(activeFileAtStart);
         
         axios.post(
           'simpleAceEditor.class.php',
@@ -412,11 +421,11 @@ include 'simpleAceEditor.class.php'; ?>
           .catch(function (error) {console.log(error);});
           
         //console.log(editor.getValue());
-      }
-      ,changeselected: function(apstatus){
+      },
+      changeselected: function(apstatus){
         let thisX = this;
         thisX.apstatus = apstatus;
-        //thisX.loadedfile.changed = false;
+        thisX.loadedfile.changed = false;
         editor.on('change', function() {
           thisX.loadedfile.changed = true;
         });
