@@ -9,8 +9,8 @@
 //  Помещаем в массив $action_list то, что планируем выполнить, отркрываем страницу и жмем на кнопку. Функция будет выполнена.
 
   $action_list = [
-    'createFile("bot1/","Кириллица, привет!.php");',
-    'moveFile("php-actions.php","SimpleAceEditor/php-actions.php");'
+    'createFile("","Кириллица, привет!.php");',
+    'moveFile("Кириллица, привет!.php","../Кириллица, привет!.php");'
     ];
   
   function createFile($foldername = "", $filename){

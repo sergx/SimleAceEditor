@@ -64,7 +64,9 @@ require_once 'auth.php';
     $files = scandir($folder);
     foreach($files as $file){
       if(!in_array($file, array(".",".."))){
+        setlocale(LC_ALL, 'ru_RU.utf8');
         $ta = pathinfo(substr($folder.$file, strlen($default_folder)));
+        //$ta = pathinfo($folder.$file ,PATHINFO_FILENAME);
         if($ta['dirname'] === "."){
           $ta['dirname'] = "";
         }else{
