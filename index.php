@@ -19,8 +19,6 @@ include 'simpleAceEditor.class.php'; ?>
    
   <!--
   Задачи проекта
-   - Открыть файл по ссылке
-   - Если открыт файл по ссылке, то подгружаются папки до этого файла
    - Открыть в отдельном окне
    - Создать файл
    - Переместить файл/папку
@@ -100,10 +98,10 @@ include 'simpleAceEditor.class.php'; ?>
     </ul>
   </div>
 </template>
-
+<?php // echo $_SERVER['PHP_SELF']; ?>
 <template id="file-list-item-template">
   <div :class="['icon_'+file.extension]">
-    <div class="filename" @click="handleClick" :class="{active:isOpen, is_folder:isFolder, is_file:!isFolder}">
+    <a :href="'<?php echo $_SERVER['PHP_SELF']; ?>?dirname='+file.dirname+'&basename='+file.basename" class="filename" @click="handleClick" @click.middle="handleMiddleClick" :class="{active:isOpen, is_folder:isFolder, is_file:!isFolder}">
       <span class="file_basename tag" :class="{'is-primary':isOpen, 'is-white':!isOpen && !fileInEditor, 'is-info':fileInEditor}">
         <i class="fa fa-caret-right" v-if="isFolder"  :class="{'fa-rotate-90':isOpen}"></i>
         {{file.basename}} <!--{{selected}} {{_uid}} {{fileInEditor}}-->
@@ -111,7 +109,7 @@ include 'simpleAceEditor.class.php'; ?>
       </span>
       <span class="tag is-light" v-if="childrenCount !== undefined">{{childrenCount}}</span>
       <span class="tag is-light" v-if="!isFolder">{{file.filesize}}</span>
-    </div>
+    </a>
     <ul v-if="isOpen">
       <li v-for="(file, key, index) in file.children">
         <file-list-item
@@ -160,8 +158,10 @@ include 'simpleAceEditor.class.php'; ?>
       if(Object.keys(this.apstatus.fileonload).length){
         if(this.file.is_dir){
           if(
-            this.file.basename.length &&
-            this.apstatus.fileonload.dirname.indexOf(this.file.dirname+this.file.basename+"/") === 0
+              (
+                this.file.basename.length &&
+                this.apstatus.fileonload.dirname.indexOf(this.file.dirname+this.file.basename+"/") === 0
+              ) || this.file.basename ===this.apstatus.fileonload.basename
           ){
             this.loadFolder();
           }
@@ -212,12 +212,16 @@ include 'simpleAceEditor.class.php'; ?>
       myTest:function(){
         //console.log(this.apstatus);
       },
-      handleClick: function(){
+      handleClick: function(e){
+        e.preventDefault();
         if(this.isFolder){
           return this.loadFolder();
         }else{
           return this.loadFile();
         }
+      },
+      handleMiddleClick: function(){
+        console.log("handleMiddleClick");
       },
       loadFolder: function(){
         let thisX = this;
