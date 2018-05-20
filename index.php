@@ -156,12 +156,31 @@ include 'simpleAceEditor.class.php'; ?>
         isOpen: false
       }
     },
-    created:function () {
-      //if(this.file.dirname.length && this.file.dirname.indexOf(this.apstatus.fileonload.dir) === 0){
-      //  loadFolder();
-      //}
-      
-      
+    mounted:function () {
+      if(Object.keys(this.apstatus.fileonload).length){
+        if(this.file.is_dir){
+          if(
+            this.file.basename.length &&
+            this.apstatus.fileonload.dirname.indexOf(this.file.dirname+this.file.basename+"/") === 0
+          ){
+            this.loadFolder();
+          }
+        }else{
+          if(
+            this.apstatus.fileonload.dirname === this.file.dirname &&
+            this.file.basename ===this.apstatus.fileonload.basename
+            ){
+              let thisX = this;
+              // TODO fix this:
+              var loadFileByLink = setInterval(function() {
+                if(thisX.apstatus.editormounted){
+                  clearInterval(loadFileByLink);
+                  thisX.loadFile();
+                }
+              }, 100);
+            }
+        }
+      }
       //if(this.file.is_dir){
         //console.log(this.file);
       //}
@@ -267,11 +286,11 @@ include 'simpleAceEditor.class.php'; ?>
             editor.setValue(response.data);
             editor.clearSelection();
             thisX.$emit('changeselected', apstatus);
-            thisX.myTest();
+            
             document.title = thisX.file.basename + " ● " + (thisX.file.dirname.length ? thisX.file.dirname : "/") ;
-            router.push({ query: { folder: thisX.file.dirname, file: thisX.file.basename }});
+            router.push({ query: { dirname: thisX.file.dirname, basename: thisX.file.basename }});
           })
-          .catch(function (error) {});
+          .catch(function (error) {console.error(error); });
       },
       renameFile: function(){
         
@@ -307,27 +326,33 @@ include 'simpleAceEditor.class.php'; ?>
           basename: ""
         },
         selected: undefined,
-        deleted: [321]
+        deleted: [999999],
+        fileonload: {},
+        editormounted: false
       },
       loadedfile:{
         changed: undefined
       }
     },
-    //,computed: {
-    //  activeFile: function(){
-    //    return {
-    //      dirname: this.apstatus.activeFile.dirname,
-    //      basename: this.apstatus.activeFile.basename
-    //    }
+    beforeCreate: function(){
+      //
+
+    },
+    created: function(){
+      this.apstatus.fileonload = this.$route.query;
+    },
+    //computed: {
+    //  "apstatus.fileonload" : function(){
+    //    return this.$route.query;
     //  }
-    //}
+    //},
     mounted () {
       // https://ace.c9.io/demo/autoresize.html
       // https://github.com/ajaxorg/ace/wiki/Configuring-Ace
       // var aceU;
-      
       let thisX = this;
       require(["ace/ace", "ace/ext/emmet", "ace/ext/modelist"], function(ace) {
+        modelist = ace.require("ace/ext/modelist");
         editor = ace.edit("editor", {
           wrapBehavioursEnabled: true,
           wrap: true,
@@ -343,12 +368,12 @@ include 'simpleAceEditor.class.php'; ?>
             thisX.saveFile();
           }
         });
-        modelist = ace.require("ace/ext/modelist");
+        console.log("editor mounted");
+        thisX.apstatus.editormounted = true;
       });
-      
-      console.log(this.$route.query);
-      console.log(this.allfiles);
-      
+
+      //console.log("editor mounted");
+      //this.apstatus.fileonload = this.$route.query;
     },
     methods: {
       saveFile: function(){
@@ -422,6 +447,7 @@ include 'simpleAceEditor.class.php'; ?>
         let thisX = this;
         thisX.apstatus = apstatus;
         thisX.loadedfile.changed = false;
+        thisX.apstatus.fileonload = {};
         editor.on('change', function() {
           thisX.loadedfile.changed = true;
         });
