@@ -242,6 +242,7 @@ include 'simpleAceEditor.class.php'; ?>
             editor.clearSelection();
             thisX.$emit('changeselected', apstatus);
             thisX.myTest();
+            document.title = thisX.file.basename + " ● " + (thisX.file.dirname.length ? thisX.file.dirname : "/") ;
           })
           .catch(function (error) {});
         
@@ -358,6 +359,7 @@ include 'simpleAceEditor.class.php'; ?>
             let mode = modelist.getModeForPath(dataToSend.data.filename);
             editor.session.setMode(mode.mode);
             thisX.$emit('changeselected', apstatus);
+            document.title = thisX.apstatus.activeFile.basename + " ● " +  (thisX.apstatus.activeFile.dirname.length ? thisX.apstatus.activeFile.dirname : "/");
           })
           .catch(function (error) {console.log(error);});
           
